@@ -300,7 +300,7 @@ class Item:
 
                 except:
 
-                    #print "\n---------------Incorrect URL or site has been recently modified. Try different item---------------"
+                    print "\n---------------Incorrect URL or site has been recently modified. Try different item---------------"
 
                     pass
 
