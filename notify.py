@@ -28,7 +28,7 @@ def wait_minute():
 
 class Item:
 
-   
+ 
 
     def __init__(self, company, url, notif_p):
 
@@ -184,7 +184,7 @@ class Item:
 
                     except:
 
-                        print "\n------Working-------"
+                       print "\n------Working-------"
 
  
 
@@ -300,9 +300,357 @@ class Item:
 
                 except:
 
-                    print "\n---------------Incorrect URL or site has been recently modified. Try different item---------------"
+                    #print "\n---------------Incorrect URL or site has been recently modified. Try different item---------------"
 
                     pass
+
+                   
+
+ 
+
+def add_item_to_track(items):
+
+    try:
+
+        print "\nPaste URL of product from E commerce site:"
+
+ 
+
+        url = raw_input().strip()
+
+        parsed_uri = urlparse(url)
+
+        domain = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
+
+ 
+
+        if str.find(domain, "amazon") > -1:
+
+                        company = "Amazon"
+
+        elif str.find(domain, "snapdeal") > -1:
+
+                        company = "Snapdeal"
+
+        elif str.find(domain, "flipkart"):
+
+                        company = "Flipkart"
+
+        else:
+
+                        print "Not a valid url"
+
+ 
+
+        print "\nEnter price below which you want to be notified:"
+
+        notif_p = float(raw_input())
+
+        temp_item = Item(company, url, notif_p)
+
+        client.messages.create(to = '+919500308728',from_ = '+13045537665',body = "you will be notified")
+
+       
+
+        if temp_item.actual_p < temp_item.notif_p:
+
+            print "\n---------------Item price is already less than notification price---------------"
+
+            return
+
+        else:
+
+            items.append(temp_item)
+
+    except:
+
+        print "An error occured"
+
+        pass
+
+ 
+
+ 
+
+def delete_tracked_item(items):
+
+ 
+
+    if len(items) == 0:
+
+                print "\n---------------No item to delete---------------"
+
+                return
+
+ 
+
+    print_item_list(items)
+
+    print "\nEnter index of item to be deleted:"
+
+    index = int(raw_input())
+
+    if index > len(items):
+
+                print "\n---------------Number of items is less than given index-------------"
+
+                return
+
+    elif index < 1:
+
+                print "\n---------------Item index can't be less than 1-------------"
+
+                return
+
+ 
+
+    del_desc = items[index-1]
+
+    items.pop(index-1)
+
+    print "\nFollowing item successfully deleted."
+
+    print del_desc.company, " ",del_desc.prod_name
+
+ 
+
+def edit_notification_price(items):
+
+    if len(items) == 0:
+
+                print "\n---------------No item to edit---------------"
+
+                return
+
+ 
+
+    print_item_list(items)
+
+    print "\nEnter index of item to be edited:"
+
+    index = int(raw_input())
+
+    if index > len(items):
+
+                   print "\n---------------Number of items is less than given index-------------"
+
+                   return
+
+    elif index < 1:
+
+                   print "\n---------------Item index can't be less than 1---------------"
+
+                   return
+
+ 
+
+    print "\nEnter new notification price:"
+
+    new_price = float(raw_input())
+
+    if new_price >= items[index-1].actual_p:
+
+                print "\n---------------Entered price is more than the actual price---------------"
+
+                client.messages.create(to = '+919500308728',from_ = '+13045537665',body = "Sorry. Entered price is more than the actual price")
+
+                return
+
+ 
+
+    items[index-1].notif_p = new_price
+
+ 
+
+ 
+
+def print_item_list(items):
+
+    print "\n%-12s %-45s %-18s %-18s" %("Company", "Product", "Present Price", "Notification Price")
+
+ 
+
+    for item in items:
+
+                print "%-12s %-45s %-18.1f %-18.1f" %(item.company, item.prod_name, item.actual_p, item.notif_p)
+
+               
+
+def save_item_list(items):
+
+    record_file = open("saved_items.txt","w")
+
+    for item in items:
+
+                record_file.write(item.company+" "+str(item.notif_p)+" "+item.url+"\n")
+
+    record_file.close()
+
+ 
+
+def process_input(my_input, items):
+
+    my_input = raw_input().strip()
+
+    if my_input.lower() == 'q' or my_input.lower() == 'quit':
+
+                print "\nDo you want to save item list  (\'Y\' or \'N\')"
+
+                is_save = raw_input()
+
+                if is_save.lower() == 'y':
+
+                    save_item_list(items)
+
+                #write to file here
+
+                exit()
+
+               
+
+    elif my_input.lower() == 'h' or my_input.lower() == 'help':
+
+                #print help
+
+                pass
+
+ 
+
+    elif my_input == '1':
+
+                #add item
+
+                add_item_to_track(items)
+
+ 
+
+    elif my_input == '2':
+
+                #print item
+
+                delete_tracked_item(items)
+
+                   
+
+    elif my_input == '3':
+
+                print_item_list(items)
+
+ 
+
+    elif my_input == '4':
+
+                #edit
+
+                edit_notification_price(items)
+
+ 
+
+    elif my_input == '5':
+
+                save_item_list(items)
+
+               
+
+    else:
+
+                print "\nInput not recognised. Please enter correct value"
+
+ 
+
+    print "\nEnter...\n1 To add item to track\n2 To delete tracked item\n3 To print tracked item list\n4 To edit notification price of item\n5 To save item list\n\'Q\' or \'quit\' to exit from program\n\'h\' or \'help\' to view operating instructions"   
+
+ 
+
+ 
+
+def update_notif_p(items):
+
+ 
+
+    notify_items = []
+
+    for item in items:
+
+                if item.company == "Snapdeal":
+
+                    item.get_sd_price()
+
+                elif item.company == "Amazon":
+
+                    item.get_amazon_price()
+
+                else:
+
+                    item.get_fk_price()
+
+ 
+
+                if item.actual_p < item.notif_p:
+
+                    notify_items.append(item)
+
+ 
+
+    if len(notify_items) > 0:
+
+        print "\n**********Notification Alert !!! **********\nFollowing items are below their notification price"
+
+        print_item_list(notify_items)
+
+   
+
+if __name__ == "__main__":
+
+    items = []
+
+    print "Checking for previously saved items..."
+
+    try:
+
+                saved_items = open("saved_items.txt","r")
+
+        all_items = saved_items.readlines()
+
+                for item in all_items:
+
+                    item_values = item.split()
+
+                    temp_item = Item(item_values[0], item_values[2], float(item_values[1]))
+
+                    items.append(temp_item)
+
+ 
+
+        if len(items) > 0:
+
+                    print "\nFollowing ",len(items)," items have been loaded from previous save:"
+
+                    print_item_list(items)
+
+                else:
+
+                    print "\nNo item has been saved previously"
+
+    except:
+
+                pass
+
+   
+
+    print "\nEnter...\n1 To add item to track\n2 To delete tracked item\n3 To print tracked item list\n4 To edit notification price of item\n5 To save item list\n\'Q\' or \'quit\' to exit from program\n\'h\' or \'help\' to view operating instructions"   
+
+    while(1):
+
+                i, o, e = select.select([sys.stdin], [], [], 20)
+
+                if (i):
+
+                   process_input(i, items)
+
+                elif len(items) > 0:
+
+                   update_notif_p(items)
 
                    
 
